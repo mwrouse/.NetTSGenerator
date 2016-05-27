@@ -3,15 +3,17 @@
 # to your pono dll's post build step
 
 #script working directory
-$pwd = split-path -parent $MyInvocation.MyCommand.Definition
+$pwdÂ =Â split-pathÂ -parentÂ $MyInvocation.MyCommand.Definition
 $rootDir = (get-item $pwd )
 
 #parameters
 $inputDLL = "lib.test.a.b.dll"
+
+$outFileDir = "."
 $outFileName = "lib.test.a.b.d.ts"
 
 
-[Environment]::CurrentDirectory = $pwd
+[Environment]::CurrentDirectoryÂ =Â $pwd
 $dirDll = ([System.IO.Path]::Combine($pwd, "bin\debug"))
 if (![System.IO.Directory]::Exists($dirDll)) {
     $dirDll = [System.IO.Path]::Combine($pwd, "..\..\bin\debug")
@@ -56,9 +58,33 @@ $fs.Flush();
 $fs.Close();
 $outStream.Close();
 
+# Do not let $outFileDir be ""
+if ($outFileDir -eq "")
+{
+	$outFileDir = ".";
+}
+
+# Do not let $outFileDir begin with "\"
+if ($outFileDir.Substring(0, 1) -eq "\")
+{
+	$outFileDir = $outFileDir.Substring(1); # Removes leading slash
+	
+	# Needed incase $outFileDir was only a slash 
+	if($outFileDir -eq "") { $outFileDir = "."; }
+}
+
+# Do not let $outFileDir end with a "\"
+if ($outFileDir.Substring($outFileDir.Length - 1) -eq "\")
+{
+	$outFileDir = $outFileDir.Substring(0, $outFileDir.Length - 1); # Trim trailing slash 
+	
+	# Needed incase $outFileDir was only a slash 
+	if ($outFileDir -eq "") { $outFileDir = "."; }
+}
+
 
 #Copy to as many places as you like
-$outPath = $rootDir.parent.FullName + "\" + $outFileName ;
+$outPath = $rootDir.parent.FullName + "\" + $outFileDir + "\" + $outFileName ;
 Write-Host ""
 Write-Host "Copying generated dts: " + $outPath 
 Write-Host ""
